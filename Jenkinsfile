@@ -91,6 +91,24 @@ pipeline {
             }
           }
         }
+        stage('Kubesec') {
+          steps {
+            container('docker-tools') {
+              catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                sh 'kubesec scan k8s.yaml'
+              }
+            }
+          }
+        }
+        stage('SCA') {
+          steps {
+            container('maven') {
+              catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                sh './mvnw org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom'
+              }
+            }
+          }
+        }
       }
     }
     stage('Package') {
